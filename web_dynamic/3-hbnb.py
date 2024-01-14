@@ -1,32 +1,50 @@
 #!/usr/bin/python3
-"""Start Flask web application.
+""" Starts a Flask Web Application """
 
-The application listens on 0.0.0.0, port 5000.
-Routes:
-    /hbnb: HBnB home page.
-"""
+from flask import Flask, url_for, render_template
+import uuid
+from os import environ
 from models import storage
-from flask import Flask, render_template
-from os import uuid
-
-app = Flask(__name__)
-
-
-@app.route("/hbnb", strict_slashes=False)
-def hbnb():
-    """Display the main HBnB filters HTML page."""
-    states = storage.all("State")
-    amenities = storage.all("Amenity")
-    places = storage.all("Place")
-    return render_template("3-hbnb.html",
-                           states=states, amenities=amenities, places=places, cache_id = (uuid.uuid4()))
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
 
 
-@app.teardown_appcontext
-def teardown(exc):
-    """Remove the current SQLAlchemy session."""
-    storage.close()
+def create_app():
+    app = Flask(__name__)
+    # app.jinja_env.trim_blocks = True
+    # app.jinja_env.lstrip_blocks = True
+    app.url_map.strict_slashes = False
+    port = 5000
+    host = '0.0.0.0'
+
+    @app.teardown_appcontext
+    def teardown_db(exception):
+        """ Remove the current SQLAlchemy Session """
+        storage.close()
+
+    @app.route('/3-hbnb')
+    def hbnb_filters(the_id=None):
+        """ request to custom template with states, cities & amentities """
+        state_objs = storage.all('State').values()
+        states = dict([state.name, state] for state in state_objs)
+        amenities = storage.all('Amenity').values()
+        places = storage.all('Place').values()
+        users = dict([user.id, "{} {}".format(user.first_name, user.last_name)]
+                     for user in storage.all('User').values())
+        return render_template('3-hbnb.html',
+                               states=states,
+                               amenities=amenities,
+                               places=places,
+                               users=users,
+                               cache_id=uuid.uuid4())
+
+    return app
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0")
+    """ Main Function """
+    app = create_app()
+    app.run(host=host, port=port)
+

@@ -12,6 +12,8 @@ import uuid
 
 
 app = Flask(__name__)
+# app.jinja_env.trim_blocks = True
+# app.jinja_env.lstrip_blocks = True
 app.url_map.strict_slashes = False
 port = 5000
 host = '0.0.0.0'
@@ -23,7 +25,7 @@ def teardown_db(exception):
     storage.close()
 
 
-@app.route('/4-hbnb')
+@app.route('/100-hbnb')
 def hbnb_filters(the_id=None):
     """ request to custom template with states, cities & amentities """
     state_objs = storage.all('State').values()
@@ -32,7 +34,7 @@ def hbnb_filters(the_id=None):
     places = storage.all('Place').values()
     users = dict([user.id, "{} {}".format(user.first_name, user.last_name)]
                  for user in storage.all('User').values())
-    return render_template('4-hbnb.html',
+    return render_template('100-hbnb.html',
                            states=states,
                            amenities=amenities,
                            places=places,

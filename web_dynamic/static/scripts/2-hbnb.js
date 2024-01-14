@@ -1,35 +1,42 @@
-#!/usr/bin/node
-
-//wait for DOM to be fully loaded
-
 $(document).ready(function () {
-    var selectedAmenities = [];
+  const amenityIds = [];
+  const amenityNames = [];
+  $('DIV.amenities input[type="checkbox"]').on('change', function () {
+    const amenityId = $(this).data('id');
+    const amenityName = $(this).data('name');
 
-    //listen for changes on each checkbox with class 'amenity-checkbox'
-    $('.amenity-checkbox').change(function() {
-        var amenityId = $(this).data('id');
+    if (this.checked) {
+      amenityIds.push(amenityId);
+      amenityNames.push(amenityName);
+    } else {
+      const indexId = amenityIds.indexOf(amenityId);
+      const indexName = amenityNames.indexOf(amenityName);
+      if (indexId !== -1) {
+        amenityIds.splice(indexId, 1);
+      }
+      if (indexName !== -1) {
+        amenityNames.splice(indexName, 1);
+      }
+    }
 
-        if ($(this).prop(checked)) {
-            selectedAmenities.push(amenityId);
-        }else {
-            selectedAmenities = selectedAmenities.filter(function(id) {
-                return id !== amenityId;
-            });
+    $('DIV.amenities H4').text(amenityNames.join(', '));
+  });
+
+  $.get('http://0.0.0.0:5001/api/v1/status/')
+    .done(function (data) {
+      if (data.status === 'OK') {
+        if (!$('DIV#api_status').hasClass('available')) {
+          $('DIV#api_status').addClass('available');
         }
-        $('#selected-amenities-list').html('<li>' + selectedAmenities.join('<li></li>') + '</li>')
+      } else {
+        if ($('DIV#api_status').hasClass('available')) {
+          $('DIV#api_status').removeClass('available');
+        }
+      }
+    })
+    .fail(function (jqXHR, textStatus, errorThrown) {
+      if ($('DIV#api_status').hasClass('available')) {
+        $('DIV#api_status').removeClass('available');
+      }
     });
 });
-
-$(document).ready(function() {
-    function updateAPIStatus() {
-        $.get('http://0.0.0.0:5001/api/v1/status/', function(data) {
-            if (data.status === 'OK') {
-                $(('#api_status').addClass('available'));
-            } else {
-                $(('#api_status').removeClass('available'));
-            }
-        })
-    }
-    updateAPIStatus();
-    setInterval(updateAPIStatus, 5000);
-})

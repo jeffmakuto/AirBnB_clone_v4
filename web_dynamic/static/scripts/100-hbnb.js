@@ -1,89 +1,51 @@
-#!/usr/bin/node
+// Script that is executed only when DOM is loaded with jQuery
 
-//wait for DOM to be fully loaded
-
+let checked_box = {};
 $(document).ready(function () {
-    var selectedAmenities = [];
-
-    //listen for changes on each checkbox with class 'amenity-checkbox'
-    $('.amenity-checkbox').change(function() {
-        var amenityId = $(this).data('id');
-
-        if ($(this).prop(checked)) {
-            selectedAmenities.push(amenityId);
-        }else {
-            selectedAmenities = selectedAmenities.filter(function(id) {
-                return id !== amenityId;
-            });
-        }
-        $('#selected-amenities-list').html('<li>' + selectedAmenities.join('<li></li>') + '</li>')
+    $('input:checkbox').change(function () {
+	if ($(this).is(':checked_box')) {
+	    checked_box[$(this).data('id')] = $(this).data('name');
+	}
+	else {
+	    delete checked_box[$(this).data('id')];
+	}
+	$('div.amenities h4').html(function () {
+	    let amenities = [];
+	    Object.keys(checked_box).forEach(function (key) {
+		amenities.push(checked_box[key]);
+	    });
+	    if (amenities.length === 0) {
+		return ('&nbsp');
+	    }
+	    return (amenities.join(', '));
+	});
     });
+
+
+const apiStatus = $('DIV#api_status');
+$.ajax('http://0.0.0.0:5001/api/v1/status/').done(function (data) {
+    if (data.status === 'OK') {
+      apiStatus.addClass('available');
+    } else {
+      apiStatus.removeClass('available');
+    }
+  });
+  
+
+
+$('button').click(function(){
+
+$.ajax({
+    type: 'POST',
+    url: 'http://0.0.0.0:5001/api/v1/places_search/',
+    contentType: 'application/json',
+    data: '{}',
+    success: function (data) {
+	for (let currentPlace of data) {
+	    $('.places').append('<article> <div class="title"> <h2>' + currentPlace.name + '</h2><div class="price_by_night">' + '$' + currentPlace.price_by_night + '</div></div> <div class="information"> <div class="max_guest"> <i class="fa fa -users fa-3x" aria-hidden="true"></i><br />' + currentPlace.max_guest + ' Guests</div><div class="number_rooms"> <i class="fa fa -users fa-3x" aria-hidden="true"></i><br />' + currentPlace.number_rooms + ' Bedrooms</div><div class="number_bathrooms"> <i class="fa fa -users fa-3x" aria-hidden="true"></i><br />' + currentPlace.number_bathrooms + ' Bathroom </div></div> <div class="user"></div><div class="description">' + '$' + currentPlace.description + '</div></article>');
+	}
+    }
 });
 
-$(document).ready(function() {
-    function updateAPIStatus() {
-        $.get('http://0.0.0.0:5001/api/v1/status/', function(data) {
-            if (data.status === 'OK') {
-                $(('#api_status').addClass('available'));
-            } else {
-                $(('#api_status').removeClass('available'));
-            }
-        })
-    }
-    updateAPIStatus();
-    setInterval(updateAPIStatus, 5000);
-})
-
-const URL = 'http://0.0.0.0:5001/api/v1/places_search/';
-fetch (url, {
-    method: POST,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-    amenities: checkedAmenities,
-    cities: Object.keys(checkedLocations),
-    states: Object.keys(checkedLocations),
 });
-
-fetch(URL, requestOptions)
-    .then(response => response.json())
-    .then(data => {
-        const placesSelection =document.getElementById('places');
-        data.forEach(place => {
-            const article = document.createElement('article');
-            article.innerHTML = `<p>${place.name}</p><p>${place.description}</p>`;
-            placesSelection.appendChild(article);
-        });
-    })
-    .catch(error => {
-        console.log('error:', error);
-    });
-
-document.getElementById('searchButton').addEventListener('click', function() {
-    const checkedAmenities = Array.from(document.querySelectorAll('.amenity-checkbox:checked'))
-    .map(checkbox => checkbox.getAttribute('data-id'));
-})
-
-document.addEventListener('DOMContentLoaded', function () {
-    const checkedLocations = {};
-    
-    function updateLocationsList() {
-        const locationsH4 = document.querySelector('.locationsH4');
-        locationsH4.textContent = 'Checked Locations: ' + Object.values(checkedLocations).join(', ');
-    }
-    
-    document.querySelectorAll('.state-checkbox, .city-checkbox').forEach(function (checkbox) {
-        checkbox.addEventListener('change', function () {
-            const id = this.getAttribute('data-id');
-            const name = this.getAttribute('data-name');
-
-            if (this.checked) {
-                checkedLocations[id] = name;
-            } else {
-                delete checkedLocations[id];
-            }
-            updateLocationsList();
-        });
-    });
 });

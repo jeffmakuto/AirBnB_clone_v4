@@ -1,25 +1,43 @@
 #!/usr/bin/python3
-"""Start Flask web application.
+"""Starts a Flask web application.
 
 The application listens on 0.0.0.0, port 5000.
 Routes:
     /hbnb: HBnB home page.
 """
 from models import storage
-from flask import Flask, render_template
-from os import uuid
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from flask import Flask
+from flask import render_template
+import uuid
 
 app = Flask(__name__)
 
 
-@app.route("/hbnb", strict_slashes=False)
+@app.route("/0-hbnb", strict_slashes=False)
 def hbnb():
-    """Display the main HBnB filters HTML page."""
-    states = storage.all("State")
-    amenities = storage.all("Amenity")
-    places = storage.all("Place")
-    return render_template("0-hbnb.html",
-                           states=states, amenities=amenities, places=places, cache_id = (uuid.uuid4()))
+    """Displays the main HBnB filters HTML page."""
+    states = storage.all(State).values()
+    states = sorted(states, key=lambda k: k.name)
+    st_ct = []
+
+    for state in states:
+        st_ct.append([state, sorted(state.cities, key=lambda k: k.name)])
+
+    amenities = storage.all(Amenity).values()
+    amenities = sorted(amenities, key=lambda k: k.name)
+
+    places = storage.all(Place).values()
+    places = sorted(places, key=lambda k: k.name)
+
+    return render_template('0-hbnb.html',
+                           states=st_ct,
+                           amenities=amenities,
+                           places=places,
+                           cache_id=uuid.uuid4())
 
 
 @app.teardown_appcontext

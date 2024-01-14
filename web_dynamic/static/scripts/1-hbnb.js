@@ -1,21 +1,24 @@
-#!/usr/bin/node
-
-//wait for DOM to be fully loaded
-
 $(document).ready(function () {
-    var selectedAmenities = [];
+  const amenityIds = [];
+  const amenityNames = [];
+  $('DIV.amenities input[type="checkbox"]').on('change', function () {
+    const amenityId = $(this).data('id');
+    const amenityName = $(this).data('name');
 
-    //listen for changes on each checkbox with class 'amenity-checkbox'
-    $('.amenity-checkbox').change(function() {
-        var amenityId = $(this).data('id');
+    if (this.checked) {
+      amenityIds.push(amenityId);
+      amenityNames.push(amenityName);
+    } else {
+      const indexId = amenityIds.indexOf(amenityId);
+      const indexName = amenityNames.indexOf(amenityName);
+      if (indexId !== -1) {
+        amenityIds.splice(indexId, 1);
+      }
+      if (indexName !== -1) {
+        amenityNames.splice(indexName, 1);
+      }
+    }
 
-        if ($(this).prop(checked)) {
-            selectedAmenities.push(amenityId);
-        }else {
-            selectedAmenities = selectedAmenities.filter(function(id) {
-                return id !== amenityId;
-            });
-        }
-        $('#selected-amenities-list').html('<li>' + selectedAmenities.join('<li></li>') + '</li>')
-    });
+    $('DIV.amenities H4').text(amenityNames.join(', '));
+  });
 });

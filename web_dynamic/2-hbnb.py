@@ -1,25 +1,28 @@
 #!/usr/bin/python3
-"""Start Flask web application.
+"""Starts a Flask web application.
 
 The application listens on 0.0.0.0, port 5000.
 Routes:
     /hbnb: HBnB home page.
 """
 from models import storage
-from flask import Flask, render_template
-from os import uuid
+from flask import Flask
+from flask import render_template
+from uuid import uuid4
+from os import environ
 
 app = Flask(__name__)
 
 
-@app.route("/hbnb", strict_slashes=False)
+@app.route("/2-hbnb", strict_slashes=False)
 def hbnb():
-    """Display the main HBnB filters HTML page."""
+    """Displays the main HBnB filters HTML page."""
     states = storage.all("State")
     amenities = storage.all("Amenity")
     places = storage.all("Place")
-    return render_template("2-hbnb.html",
-                           states=states, amenities=amenities, places=places, cache_id = (uuid.uuid4()))
+    return render_template(
+            "./2-hbnb.html", states=states, amenities=amenities, places=places,
+            cache_id=uuid4())
 
 
 @app.teardown_appcontext
